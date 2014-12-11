@@ -7,16 +7,19 @@ public class Bullet : MonoBehaviour {
 
 	public Unit.Faction faction;
 
-	public void Launch(Vector3 target, Unit.Faction faction, float damage) {
+	private Unit myOvner;
+
+	public void Launch(Vector3 target, Unit.Faction faction, float damage, Unit myOvner) {
 		this.damage = damage;
 		this.faction = faction;
+		this.myOvner = myOvner;
 		rigidbody.velocity = target;
 	}
 
 	public void OnTriggerEnter(Collider other) {
 		if(other.transform.GetComponent<Unit>() &&
 		   faction != other.transform.GetComponent<Unit>().faction) {
-			other.transform.GetComponent<Unit>().GetDamage(damage);
+			other.transform.GetComponent<Unit>().GetDamage(damage,myOvner);
 			Destroy(gameObject);
 		}
 	}

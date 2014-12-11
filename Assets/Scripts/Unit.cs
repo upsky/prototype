@@ -51,7 +51,11 @@ public class Unit: MonoBehaviour {
 		hp = 10;
 	}
 
-	public void GetDamage(float damage) {
+	public void GetDamage(float damage, Unit enemyUnit) {
 		hp -= damage;
+		if (hp < 0) {
+			enemyUnit.GetComponent<PirateAI>().SetNullTarget();
+			Destroy(gameObject);
+		}
 	}
 }

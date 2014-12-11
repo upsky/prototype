@@ -39,6 +39,11 @@ public class PirateAI : MonoBehaviour {
 		CancelInvoke("FindTraget");
 	}
 
+	public void SetNullTarget() {
+		oppositeArmy.units.Remove(targetUnit.gameObject);
+		targetUnit = null;
+	}
+
 	void Start() {
 	
 		blueArmy = GameObject.Find("BlueArmy").GetComponent<Army>();
@@ -68,7 +73,7 @@ public class PirateAI : MonoBehaviour {
 				
 				currentBullet.GetComponent<Bullet>().Launch((targetUnit.transform.position - transform.position)*2f,
 				                                            unit.faction,
-				                                            unit.damage);
+				                                            unit.damage,unit);
 			}
 		}
 	}
