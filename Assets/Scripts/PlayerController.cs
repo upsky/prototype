@@ -7,8 +7,13 @@ public class PlayerController : MonoBehaviour {
 
 	private Unit currentUnit;
 
+	public GameObject selectedUnit;
+
 	public void OnPlayerSelected(int selected) {
-		currentUnit = army.units[selected].GetComponent<Unit>();
+		if(army.units[selected] != null) {
+			currentUnit = army.units[selected].GetComponent<Unit>();
+			selectedUnit.SetActive(true);
+		}
 	}
 	
 	RaycastHit hit;
@@ -26,6 +31,11 @@ public class PlayerController : MonoBehaviour {
 	void Update() {
 		if(Input.GetMouseButton(0)) {
 			RayHandler();
+		}
+		if(currentUnit != null) {
+			selectedUnit.transform.position = currentUnit.transform.position;
+		} else {
+			selectedUnit.SetActive(false);
 		}
 	}
 }

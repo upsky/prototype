@@ -4,23 +4,29 @@ using System.Collections;
 
 public class PirateAI : MonoBehaviour {
 
-	private Army blueArmy;
-	private Army redArmy;
-	private Army currentArmy;
-	private Army oppositeArmy;
-
 	public NavMeshAgent move;
 
 	private Unit unit;
 	private Unit targetUnit;
-
-	public GameObject bullet;
 	
 	public bool playerOrder;
 
+	public Unit TargetUnit {
+		get { return targetUnit; }
+		set {
+			if (targetUnit != null)
+				targetUnit.onUnitDestroyed = null;
+
+			targetUnit = value;
+
+			if (targetUnit != null)
+				targetUnit.onUnitDestroyed = () => { targetUnit = null; };
+		}
+	}
+
 	public void SetTargetOrder(Unit newTarget) {
 		StopInvoks();
-		targetUnit = newTarget;
+		TargetUnit = newTarget;
 		playerOrder = true;
 		MoveToUnit(targetUnit);
 	}
@@ -39,87 +45,60 @@ public class PirateAI : MonoBehaviour {
 		CancelInvoke("FindTraget");
 	}
 
-	public void SetNullTarget() {
-		oppositeArmy.units.Remove(targetUnit.gameObject);
-		targetUnit = null;
-	}
-
 	void Start() {
-	
-		blueArmy = GameObject.Find("BlueArmy").GetComponent<Army>();
-		redArmy = GameObject.Find("RedArmy").GetComponent<Army>();
-
+		move = GetComponent<NavMeshAgent>();
 		unit = GetComponent<Unit>();
-
-		if(unit.faction == Unit.Faction.red) {
-			currentArmy = redArmy;
-			oppositeArmy = blueArmy;
-		} else {
-			currentArmy = blueArmy;
-			oppositeArmy = redArmy;
-		}
 		InvokeRepeating("FindTraget",0,0.1f);
 		InvokeRepeating("Attack",0,unit.cd);
 	}
 
 	void Attack() {
+		if (targetUnit == null)
+			return;
+
 		if(move.velocity.magnitude > 0.1f) {
 			return;
 		}
-
-		if(targetUnit != null) {
-			if((transform.position - targetUnit.transform.position).magnitude < unit.attackRadius) {
-				GameObject currentBullet = (GameObject)GameObject.Instantiate(bullet,transform.position, Quaternion.identity);
-				
-				currentBullet.GetComponent<Bullet>().Launch((targetUnit.transform.position - transform.position)*2f,
-				                                            unit.faction,
-				                                            unit.damage,unit);
+		if (Vector3.Angle((targetUnit.transform.position - transform.position),transform.forward) < 45) {
+			if(targetUnit != null) {
+				if((transform.position - targetUnit.transform.position).magnitude < unit.attackRadius) 
+					unit.Weapon.Attack (targetUnit);
 			}
 		}
 	}
 
 	void FindTraget() {
+		Unit nearestUnit = UnitManager.instance.GetNearestUnit(unit.OppositeFaction, transform.position);
 
-		GameObject nearestUnit = null;
-		float minDist = float.MaxValue;
-		foreach(var unitObj in oppositeArmy.units)
-		{
-			float dst = (unitObj.transform.position - transform.position).magnitude;
-			if (dst < minDist)
-			{
-				minDist = dst;
-				nearestUnit = unitObj;
+		if (nearestUnit != null) {
+			if (targetUnit == null) 
+				targetUnit = nearestUnit.GetComponent<Unit>();
+			else {
+				float targetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
+				float nearestUnitDist = (transform.position - nearestUnit.transform.position).magnitude;
+				
+				if (nearestUnitDist < targetUnitDist - unit.attackRadius*0.5f) 
+					targetUnit = nearestUnit.GetComponent<Unit>();
 			}
 		}
 
-		if (targetUnit == null)
-			targetUnit = nearestUnit.GetComponent<Unit>();
-		else {
-			float targetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
-			float nearestUnitDist = (transform.position - nearestUnit.transform.position).magnitude;
-
-			if (nearestUnitDist < targetUnitDist - unit.attackRadius*0.5f)
-				targetUnit = nearestUnit.GetComponent<Unit>();
-			else
-				move.Stop();
-		}
-
-		float newTargetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
-		if (newTargetUnitDist > unit.attackRadius) {
-			MoveToTarget((targetUnit.transform.position - transform.position)/newTargetUnitDist*(newTargetUnitDist - unit.attackRadius*0.7f));
-		}
+		MoveToUnit(targetUnit);
 	}
 
 	void MoveToTarget(Vector3 targetPosition) {
 		move.SetDestination(targetPosition);
-		Debug.DrawRay(targetPosition, Vector3.up*2f, Color.red, 1);
+		Debug.DrawRay(targetPosition, Vector3.up*2f, unit.faction == Unit.Faction.blue ? Color.blue:Color.red, 1);
 	}
 
-	void MoveToUnit(Unit targetUnit){
+	void MoveToUnit(Unit targetUnit) {
+		if (targetUnit == null)
+			return;
+
 		float newTargetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
 		if (newTargetUnitDist > unit.attackRadius) {
-			MoveToTarget((targetUnit.transform.position - transform.position)/newTargetUnitDist*(newTargetUnitDist - unit.attackRadius*0.7f));
+			MoveToTarget((targetUnit.transform.position - transform.position)/newTargetUnitDist*(newTargetUnitDist - unit.attackRadius*0.7f) + transform.position);
 		}
+		else move.Stop();
 	}
 
 	void Update() {

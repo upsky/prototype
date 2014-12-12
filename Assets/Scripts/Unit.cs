@@ -1,30 +1,34 @@
 ﻿using UnityEngine;
+using System;
+using System.Linq;
 using System.Collections;
 
-public class Unit: MonoBehaviour {
-
-	public enum UnitType {
-		sword,
-		ball,
-		harpoon,
-		pistol,
-		cannon
+public abstract class Weapon : MonoBehaviour {
+	
+	protected Unit unit;
+	
+	void Awake() {
+		unit = GetComponent<Unit>();
 	}
+	
+	public abstract void Attack(Unit target);
+}
+
+public class Unit: MonoBehaviour {
 
 	public enum Faction {
 		red,
 		blue
 	}
 
-	public UnitType unitType;
+	[Serializable]
+	public struct SkinDef {
+		public GameObject skinPrefab;
+		public Faction faction;
+	}
 
+	public SkinDef[] skins;
 	public Faction faction;
-
-	private float[] cdArr = {1,2,2,1,3};
-	private float[] bulletSpeedArr = {1,2,3,1,3};
-	private float[] damageArr = {1,2,2,1,3};
-	private float[] attackRadiusArr = {100,5,3,5,1};
-	private float[] damageRadiusArr = {1,2,1,1,3};
 
 	public float cd = 0;
 	public float bulletSpeed = 0;
@@ -32,30 +36,53 @@ public class Unit: MonoBehaviour {
 	public float attackRadius = 0;
 	public float damageRadius = 0;
 
+	public Action onUnitDestroyed;
+	private Weapon weapon;
+
 	private float hp = 10;
+	
+	public Faction OppositeFaction {
+		get {
+			if (faction == Faction.red)
+				return Faction.blue;
 
-	public void Init(UnitType type, Faction newFaction) {
-		unitType = type;
-		faction = newFaction;
+			return Faction.red;
+		}
+	}
 
-		int selectedUnitType = (int)unitType;
+	public Weapon Weapon {
+		get { return weapon; }
+	}
 
-		cd = cdArr[selectedUnitType];
-		bulletSpeed = bulletSpeedArr[selectedUnitType];
-		damage = damageArr[selectedUnitType];
-		attackRadius = attackRadiusArr[selectedUnitType];
-		damageRadius = damageRadiusArr[selectedUnitType];
+	void Awake() {
+		UnitManager.instance.OnUnitCreated(this);
+		weapon = GetComponent<Weapon>();
+	}
+
+	void OnDestroy() {
+		UnitManager.instance.OnUnitDestroyed(this);
+		if (onUnitDestroyed != null)
+			onUnitDestroyed();
 	}
 
 	public void ResurrectionUnit() {
 		hp = 10;
 	}
 
-	public void GetDamage(float damage, Unit enemyUnit) {
+	public void GetDamage(float damage) {
 		hp -= damage;
 		if (hp < 0) {
-			enemyUnit.GetComponent<PirateAI>().SetNullTarget();
 			Destroy(gameObject);
 		}
+	}
+
+	public void InitializeFaction(Faction faction) {
+		this.faction = faction;
+		GameObject skinPrefab = skins.First(x => x.faction == faction).skinPrefab;
+		GameObject skin = Instantiate(skinPrefab) as GameObject;
+		skin.transform.parent = transform;
+		skin.transform.localPosition = Vector3.zero;
+		skin.transform.localRotation = Quaternion.identity;
+		skin.transform.localScale = new Vector3(1,1,1);
 	}
 }

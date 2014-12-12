@@ -1,11 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Bullet : MonoBehaviour {
+public class Granate : MonoBehaviour {
 
 	public float damage = 1f;
 
 	public Unit.Faction faction;
+
+	public AnimationCurve curva;
+
+	Transform myTransform;
+	Vector3 targetPos = Vector3.zero;
+	float pathLength = 0;
+
+	private void AdjustmentMovement(Vector3 targetPos) {
+		myTransform = transform;
+		this.targetPos = targetPos;
+	}
+
+	void Update() {
+		pathLength = (targetPos - myTransform).magnitude;
+		myTransform.position = myTransform.position + new Vector3(0,curva.Evaluate(pathLength)*10f,0);
+	}
 
 	private Unit myOvner;
 
@@ -13,6 +29,7 @@ public class Bullet : MonoBehaviour {
 		this.damage = damage;
 		this.faction = faction;
 		this.myOvner = myOvner;
+		AdjustmentMovement(target);
 		rigidbody.velocity = target;
 	}
 
