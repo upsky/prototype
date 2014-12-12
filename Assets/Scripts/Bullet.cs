@@ -14,6 +14,11 @@ public class Bullet : MonoBehaviour {
 		this.faction = faction;
 		this.myOvner = myOvner;
 		rigidbody.velocity = target;
+		Invoke("KillHimself", 1.5f);
+	}
+
+	private void KillHimself() {
+		Destroy(gameObject);
 	}
 
 	public void OnTriggerEnter(Collider other) {

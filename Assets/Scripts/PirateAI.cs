@@ -59,11 +59,11 @@ public class PirateAI : MonoBehaviour {
 		if(move.velocity.magnitude > 0.1f) {
 			return;
 		}
-		if (Vector3.Angle((targetUnit.transform.position - transform.position),transform.forward) < 45) {
-			if(targetUnit != null) {
-				if((transform.position - targetUnit.transform.position).magnitude < unit.attackRadius) 
-					unit.Weapon.Attack (targetUnit);
-			}
+
+		if(targetUnit != null && 
+		   Vector3.Angle((targetUnit.transform.position - transform.position),transform.forward) < 45) {
+			if((transform.position - targetUnit.transform.position).magnitude < unit.attackRadius) 
+				unit.Weapon.Attack (targetUnit);
 		}
 	}
 
