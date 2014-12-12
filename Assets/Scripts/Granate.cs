@@ -16,11 +16,12 @@ public class Granate : MonoBehaviour {
 	private void AdjustmentMovement(Vector3 targetPos) {
 		myTransform = transform;
 		this.targetPos = targetPos;
+		pathLength = (targetPos - myTransform.position).magnitude;
 	}
 
 	void Update() {
-		pathLength = (targetPos - myTransform).magnitude;
-		myTransform.position = myTransform.position + new Vector3(0,curva.Evaluate(pathLength)*10f,0);
+		float localPathLength = (targetPos - myTransform.position).magnitude;
+		myTransform.position = myTransform.position + new Vector3(0,curva.Evaluate(localPathLength/pathLength)*10f,0);
 	}
 
 	private Unit myOvner;
