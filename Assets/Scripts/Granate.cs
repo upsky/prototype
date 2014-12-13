@@ -29,9 +29,8 @@ public class Granate : MonoBehaviour {
 		if(start) {
 			float localPathLength = (new Vector2(targetPos.x,targetPos.z) - new Vector2(myTransform.position.x,myTransform.position.z)).magnitude;
 			myTransform.position = new Vector3(0,curva.Evaluate(localPathLength/pathLength)*3f,0) + 
-				Vector3.MoveTowards(new Vector3(myTransform.position.x,0,myTransform.position.z),new Vector3(targetPos.x,0,targetPos.z),Time.deltaTime);
+				Vector3.MoveTowards(new Vector3(myTransform.position.x,0,myTransform.position.z),new Vector3(targetPos.x,0,targetPos.z),Time.deltaTime*3f);
 			if((targetPos-myTransform.position).magnitude < 1f) {
-				Debug.Log("end path");
 				btoom.Play();
 				GetComponent<Renderer>().enabled = false;
 				start = false;
