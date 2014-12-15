@@ -29,7 +29,8 @@ public class Unit: MonoBehaviour {
 
 	public SkinDef[] skins;
 	public Faction faction;
-
+	
+	public float hp = 10;
 	public float cd = 0;
 	public float bulletSpeed = 0;
 	public float damage = 0;
@@ -39,7 +40,6 @@ public class Unit: MonoBehaviour {
 	public Action onUnitDestroyed;
 	private Weapon weapon;
 
-	private float hp = 10;
 	
 	public Faction OppositeFaction {
 		get {
@@ -84,5 +84,8 @@ public class Unit: MonoBehaviour {
 		skin.transform.localPosition = Vector3.zero;
 		skin.transform.localRotation = Quaternion.identity;
 		skin.transform.localScale = new Vector3(1,1,1);
+
+		if (faction == Faction.blue) tag = "enemy";
+		else tag = "friend";
 	}
 }

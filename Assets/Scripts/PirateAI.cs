@@ -1,15 +1,20 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Collections;
+using UnityEditor;
 
 public class PirateAI : MonoBehaviour {
 
 	public NavMeshAgent move;
+	public float findTargetDelay = 1.5f;
 
 	private Unit unit;
 	private Unit targetUnit;
 	
 	public bool playerOrder;
+
+	private Color factionColor;
+
 
 	public Unit TargetUnit {
 		get { return targetUnit; }
@@ -28,7 +33,6 @@ public class PirateAI : MonoBehaviour {
 		StopInvoks();
 		TargetUnit = newTarget;
 		playerOrder = true;
-		MoveToUnit(targetUnit);
 	}
 
 	public void SetMoveOrder(Vector3 newPos) {
@@ -38,7 +42,7 @@ public class PirateAI : MonoBehaviour {
 	}
 
 	private void StartInvoks() {
-		InvokeRepeating("FindTraget",0,0.1f);
+		InvokeRepeating("FindTraget",0,findTargetDelay);
 	}
 
 	private void StopInvoks() {
@@ -48,23 +52,91 @@ public class PirateAI : MonoBehaviour {
 	void Start() {
 		move = GetComponent<NavMeshAgent>();
 		unit = GetComponent<Unit>();
-		InvokeRepeating("FindTraget",0,0.1f);
+		
+		Color redf = new Color(1f, 0f, 0f, 0.6f);
+		Color bluef = new Color(0f, 0f, 1f, 0.6f);
+		factionColor = unit.faction == Unit.Faction.blue ? bluef:redf;
+
+		InvokeRepeating("FindTraget",0,findTargetDelay);
 		InvokeRepeating("Attack",0,unit.cd);
 	}
 
 	void Attack() {
 		if (targetUnit == null)
 			return;
-
-		if(move.velocity.magnitude > 0.1f) {
-			return;
+		
+		if (IsCanAttackTargetFromPoint(transform.position))
+		{
+			if (Vector3.Angle(targetUnit.transform.position - transform.position, transform.forward) < 45 && move.velocity.magnitude < 0.1f) 
+				unit.Weapon.Attack (targetUnit);
 		}
-		if (Vector3.Angle((targetUnit.transform.position - transform.position),transform.forward) < 45) {
-			if(targetUnit != null) {
-				if((transform.position - targetUnit.transform.position).magnitude < unit.attackRadius) 
-					unit.Weapon.Attack (targetUnit);
+	}
+
+	bool IsCanAttackTargetFromPoint(Vector3 position) {
+		if (targetUnit == null)
+			return false;
+
+		Vector3 dir = targetUnit.transform.position - position;
+
+		if (dir.magnitude > unit.attackRadius)
+			return false;
+
+		RaycastHit hit;
+		//Debug.DrawRay(position, dir, factionColor);
+		if (Physics.Raycast(position, dir, out hit)) {
+			if (hit.collider.gameObject != targetUnit.gameObject)
+			{
+				Debug.DrawRay(hit.point, hit.normal*0.2f, Color.yellow);
+				//Debug.Log("Ray hit: " + hit.collider.transform.gameObject, hit.collider.transform.gameObject);
+				return false;
 			}
 		}
+
+		return true;
+	}
+
+	Vector3 FindAttackingPosition() {
+		if (IsCanAttackTargetFromPoint(transform.position))
+			return transform.position;
+
+		const float traceAngleThreshold = 15.0f;
+		Vector3 targetDir = targetUnit.transform.position - transform.position;
+		float dist = targetDir.magnitude;
+		Vector3 initialDir = targetDir/dist*Mathf.Min(unit.attackRadius*-0.7f, dist);
+
+		Color dirColor = new Color(1f, 1f, 1f, 0.2f);
+
+		float accumulateAngle = 0;
+		while (accumulateAngle < 180f) {
+			Vector3 leftWorld = initialDir; leftWorld = leftWorld.RotateY(accumulateAngle*Mathf.Deg2Rad);
+			Vector3 rightWorld = initialDir; rightWorld = rightWorld.RotateY(-accumulateAngle*Mathf.Deg2Rad);
+			
+// 			Debug.DrawRay(targetUnit.transform.position, leftWorld, factionColor, findTargetDelay);
+// 			Debug.DrawRay(targetUnit.transform.position, rightWorld, factionColor, findTargetDelay);
+// 			Debug.DrawLine(transform.position, targetUnit.transform.position + leftWorld, factionColor, findTargetDelay);
+// 			Debug.DrawLine(transform.position, targetUnit.transform.position + rightWorld, factionColor, findTargetDelay);
+
+			RaycastHit hit;
+			if (Physics.Raycast(targetUnit.transform.position + rightWorld + Vector3.up*50f, Vector3.down, out hit)) {
+				Vector3 traced = hit.point + Vector3.up*0.5f;
+				Debug.DrawRay(hit.point, hit.normal*0.5f, factionColor);
+				Debug.DrawLine(traced, targetUnit.transform.position, factionColor, findTargetDelay);
+				if (IsCanAttackTargetFromPoint(traced))
+					return traced;
+			}
+			
+			if (Physics.Raycast(targetUnit.transform.position + leftWorld + Vector3.up*50f, Vector3.down, out hit)) {
+				Vector3 traced = hit.point + Vector3.up*0.5f;
+				Debug.DrawRay(hit.point, hit.normal*0.5f, factionColor);
+				Debug.DrawLine(traced, targetUnit.transform.position, factionColor, findTargetDelay);
+				if (IsCanAttackTargetFromPoint(traced))
+					return traced;
+			}
+			
+			accumulateAngle += traceAngleThreshold;
+		}
+
+		return targetUnit.transform.position;
 	}
 
 	void FindTraget() {
@@ -72,33 +144,24 @@ public class PirateAI : MonoBehaviour {
 
 		if (nearestUnit != null) {
 			if (targetUnit == null) 
-				targetUnit = nearestUnit.GetComponent<Unit>();
+				targetUnit = nearestUnit;
 			else {
 				float targetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
 				float nearestUnitDist = (transform.position - nearestUnit.transform.position).magnitude;
 				
 				if (nearestUnitDist < targetUnitDist - unit.attackRadius*0.5f) 
-					targetUnit = nearestUnit.GetComponent<Unit>();
+					targetUnit = nearestUnit;
 			}
 		}
-
-		MoveToUnit(targetUnit);
+				
+		if (targetUnit != null && !IsCanAttackTargetFromPoint(transform.position))
+			MoveToTarget(FindAttackingPosition());
+		else move.Stop();
 	}
 
 	void MoveToTarget(Vector3 targetPosition) {
 		move.SetDestination(targetPosition);
-		Debug.DrawRay(targetPosition, Vector3.up*2f, unit.faction == Unit.Faction.blue ? Color.blue:Color.red, 1);
-	}
-
-	void MoveToUnit(Unit targetUnit) {
-		if (targetUnit == null)
-			return;
-
-		float newTargetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
-		if (newTargetUnitDist > unit.attackRadius) {
-			MoveToTarget((targetUnit.transform.position - transform.position)/newTargetUnitDist*(newTargetUnitDist - unit.attackRadius*0.7f) + transform.position);
-		}
-		else move.Stop();
+		//Debug.DrawRay(targetPosition, Vector3.up*2f, factionColor, 1);
 	}
 
 	void Update() {
@@ -106,10 +169,20 @@ public class PirateAI : MonoBehaviour {
 			StartInvoks();
 			playerOrder = false;
 		}
-
+		
 		if(move.velocity.magnitude <= 0.1f && targetUnit != null) {
 			RotateTowards(targetUnit.transform);
 		}
+
+		if (Selection.activeGameObject == gameObject || Selection.activeGameObject == transform.GetChild(0).gameObject)
+			factionColor.a = 0.6f;
+		else
+			factionColor.a = 0f;
+		
+		Debug.DrawLine(transform.position, move.destination, factionColor);
+		Debug.DrawRay(move.destination, Vector2.up*2f, factionColor);
+		if (targetUnit != null)
+			Debug.DrawLine(transform.position, targetUnit.transform.position, factionColor);
 	}
 
 	private void RotateTowards (Transform target) {
