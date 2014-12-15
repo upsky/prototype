@@ -16,6 +16,8 @@ public class PirateAI : MonoBehaviour {
 	private Color factionColor;
 
 
+	public bool isTower = false;
+
 	public Unit TargetUnit {
 		get { return targetUnit; }
 		set {
@@ -160,6 +162,9 @@ public class PirateAI : MonoBehaviour {
 	}
 
 	void MoveToTarget(Vector3 targetPosition) {
+		if (isTower)
+			return;
+
 		move.SetDestination(targetPosition);
 		//Debug.DrawRay(targetPosition, Vector3.up*2f, factionColor, 1);
 	}
