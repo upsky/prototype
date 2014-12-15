@@ -59,6 +59,8 @@ public class PirateAI : MonoBehaviour {
 		Color bluef = new Color(0f, 0f, 1f, 0.6f);
 		factionColor = unit.faction == Unit.Faction.blue ? bluef:redf;
 
+		move.avoidancePriority = Random.Range(30, 70);
+
 		InvokeRepeating("FindTraget",0,findTargetDelay);
 		InvokeRepeating("Attack",0,unit.cd);
 	}
@@ -67,10 +69,12 @@ public class PirateAI : MonoBehaviour {
 		if (targetUnit == null)
 			return;
 		
-		if (IsCanAttackTargetFromPoint(transform.position))
+		if (IsCanAttackTargetFromPoint(unit.AttackPoint))
 		{
-			if (Vector3.Angle(targetUnit.transform.position - transform.position, transform.forward) < 45 && move.velocity.magnitude < 0.1f) 
+			if (Vector3.Angle(targetUnit.AttackPoint - transform.position, transform.forward) < 45 && move.velocity.magnitude < 0.1f) {
+				unit.Skin.Attack();
 				unit.Weapon.Attack (targetUnit);
+			}
 		}
 	}
 
@@ -78,7 +82,7 @@ public class PirateAI : MonoBehaviour {
 		if (targetUnit == null)
 			return false;
 
-		Vector3 dir = targetUnit.transform.position - position;
+		Vector3 dir = targetUnit.AttackPoint - position;
 
 		if (dir.magnitude > unit.attackRadius)
 			return false;
@@ -98,11 +102,11 @@ public class PirateAI : MonoBehaviour {
 	}
 
 	Vector3 FindAttackingPosition() {
-		if (IsCanAttackTargetFromPoint(transform.position))
+		if (IsCanAttackTargetFromPoint(unit.AttackPoint))
 			return transform.position;
 
 		const float traceAngleThreshold = 15.0f;
-		Vector3 targetDir = targetUnit.transform.position - transform.position;
+		Vector3 targetDir = targetUnit.AttackPoint - transform.position;
 		float dist = targetDir.magnitude;
 		Vector3 initialDir = targetDir/dist*Mathf.Min(unit.attackRadius*-0.7f, dist);
 
@@ -148,15 +152,15 @@ public class PirateAI : MonoBehaviour {
 			if (targetUnit == null) 
 				targetUnit = nearestUnit;
 			else {
-				float targetUnitDist = (transform.position - targetUnit.transform.position).magnitude;
-				float nearestUnitDist = (transform.position - nearestUnit.transform.position).magnitude;
+				float targetUnitDist = (transform.position - targetUnit.AttackPoint).magnitude;
+				float nearestUnitDist = (transform.position - nearestUnit.AttackPoint).magnitude;
 				
 				if (nearestUnitDist < targetUnitDist - unit.attackRadius*0.5f) 
 					targetUnit = nearestUnit;
 			}
 		}
 				
-		if (targetUnit != null && !IsCanAttackTargetFromPoint(transform.position))
+		if (targetUnit != null && !IsCanAttackTargetFromPoint(unit.AttackPoint))
 			MoveToTarget(FindAttackingPosition());
 		else move.Stop();
 	}
@@ -179,6 +183,8 @@ public class PirateAI : MonoBehaviour {
 			RotateTowards(targetUnit.transform);
 		}
 
+		unit.Skin.Speed = move.velocity.magnitude;
+
 		if (Selection.activeGameObject == gameObject || Selection.activeGameObject == transform.GetChild(0).gameObject)
 			factionColor.a = 0.6f;
 		else
@@ -187,7 +193,7 @@ public class PirateAI : MonoBehaviour {
 		Debug.DrawLine(transform.position, move.destination, factionColor);
 		Debug.DrawRay(move.destination, Vector2.up*2f, factionColor);
 		if (targetUnit != null)
-			Debug.DrawLine(transform.position, targetUnit.transform.position, factionColor);
+			Debug.DrawLine(transform.position, targetUnit.AttackPoint, factionColor);
 	}
 
 	private void RotateTowards (Transform target) {

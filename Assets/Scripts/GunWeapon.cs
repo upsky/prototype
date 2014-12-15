@@ -17,7 +17,7 @@ public class GunWeapon : Weapon {
 
 	public override void Attack(Unit target) {
 		if(!first) {
-			weaopnType = (WeaopnType)Random.Range(0,4);
+			//weaopnType = (WeaopnType)Random.Range(0,4);
 			first = true;
 		}
 
@@ -38,22 +38,25 @@ public class GunWeapon : Weapon {
 	}
 
 	private void Granate(Unit target) {
-		Granate granate = (Instantiate(granatePrefab.gameObject, transform.position, Quaternion.identity) as GameObject).GetComponent<Granate>();
+		Granate granate = (Instantiate(granatePrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.identity) as GameObject).GetComponent<Granate>();
 		granate.Launch(target.transform.position, unit.faction, unit.damage, unit);
 	}
 
 	private void Pistol(Unit target) {
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, transform.position, Quaternion.identity) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position)*2f, unit.faction, unit.damage, unit,false,0.5f);
+		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.faction, unit.damage, unit,false,2.5f);
 	}
 
 	private void CoreBazuka(Unit target) {
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, transform.position, Quaternion.identity) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position)*1f, unit.faction, unit.damage, unit,true,0.5f);
+		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		bullet.Launch((target.transform.position - transform.position).normalized*10f, unit.faction, unit.damage, unit,true,2.5f);
 	}
 
 	private void Bazuka(Unit target) {
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, transform.position, Quaternion.identity) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position)*3f, unit.faction, unit.damage, unit,true,2f);
+		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		bullet.Launch((target.transform.position - transform.position).normalized*30f, unit.faction, unit.damage, unit,true,2.5f);
 	}
 }

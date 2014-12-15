@@ -23,7 +23,7 @@ public class Unit: MonoBehaviour {
 
 	[Serializable]
 	public struct SkinDef {
-		public GameObject skinPrefab;
+		public PirateSkin skinPrefab;
 		public Faction faction;
 	}
 
@@ -39,6 +39,7 @@ public class Unit: MonoBehaviour {
 
 	public Action onUnitDestroyed;
 	private Weapon weapon;
+	private PirateSkin skin;
 
 	
 	public Faction OppositeFaction {
@@ -54,9 +55,19 @@ public class Unit: MonoBehaviour {
 		get { return weapon; }
 	}
 
+	public PirateSkin Skin {
+		get { return skin; }
+	}
+
+	public Vector3 AttackPoint {
+		get { return transform.position + Vector3.up; }
+	}
+
 	void Awake() {
 		UnitManager.instance.OnUnitCreated(this);
 		weapon = GetComponent<Weapon>();
+
+		cd += UnityEngine.Random.Range(-0.1f, 0.1f);
 	}
 
 	void OnDestroy() {
@@ -78,8 +89,9 @@ public class Unit: MonoBehaviour {
 
 	public void InitializeFaction(Faction faction) {
 		this.faction = faction;
-		GameObject skinPrefab = skins.First(x => x.faction == faction).skinPrefab;
-		GameObject skin = Instantiate(skinPrefab) as GameObject;
+		GameObject skinPrefab = skins.First(x => x.faction == faction).skinPrefab.gameObject;
+		GameObject skinObject = Instantiate(skinPrefab) as GameObject;
+		skin = skinObject.GetComponent<PirateSkin>();
 		skin.transform.parent = transform;
 		skin.transform.localPosition = Vector3.zero;
 		skin.transform.localRotation = Quaternion.identity;
