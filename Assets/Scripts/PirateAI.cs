@@ -11,6 +11,8 @@ public class PirateAI : MonoBehaviour {
 	
 	public bool playerOrder;
 
+	public bool isTower = false;
+
 	public Unit TargetUnit {
 		get { return targetUnit; }
 		set {
@@ -81,8 +83,9 @@ public class PirateAI : MonoBehaviour {
 					targetUnit = nearestUnit.GetComponent<Unit>();
 			}
 		}
-
-		MoveToUnit(targetUnit);
+		if(!isTower) {
+			MoveToUnit(targetUnit);
+		}
 	}
 
 	void MoveToTarget(Vector3 targetPosition) {
