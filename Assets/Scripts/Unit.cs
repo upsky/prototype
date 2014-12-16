@@ -68,6 +68,7 @@ public class Unit: MonoBehaviour {
 		weapon = GetComponent<Weapon>();
 
 		cd += UnityEngine.Random.Range(-0.1f, 0.1f);
+		baseHp = hp;
 	}
 
 	void OnDestroy() {
@@ -76,12 +77,15 @@ public class Unit: MonoBehaviour {
 			onUnitDestroyed();
 	}
 
+	float baseHp = 0;
+
 	public void ResurrectionUnit() {
 		hp = 10;
 	}
 
 	public void GetDamage(float damage) {
 		hp -= damage;
+		BroadcastMessage("HpHandler",hp/baseHp);
 		if (hp < 0) {
 			Destroy(gameObject);
 		}

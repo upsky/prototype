@@ -51,9 +51,12 @@ public class PirateAI : MonoBehaviour {
 		CancelInvoke("FindTraget");
 	}
 
+	PlayerController playerController;
+
 	void Start() {
 		move = GetComponent<NavMeshAgent>();
 		unit = GetComponent<Unit>();
+		playerController = GameObject.Find("Logic").GetComponent<PlayerController>();
 		
 		Color redf = new Color(1f, 0f, 0f, 0.6f);
 		Color bluef = new Color(0f, 0f, 1f, 0.6f);
@@ -176,6 +179,7 @@ public class PirateAI : MonoBehaviour {
 	void Update() {
 		if(move.remainingDistance < 0.1f && playerOrder) {
 			StartInvoks();
+			playerController.HideUnitPathTarget();
 			playerOrder = false;
 		}
 		

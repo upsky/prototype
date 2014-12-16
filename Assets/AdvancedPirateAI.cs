@@ -112,7 +112,7 @@ public class AdvancedPirateAI : MonoBehaviour {
 				tracePoint.point = groundTracedPoint;
 
 				//trace from target to ground point
-				if (Physics.Raycast(targetUnit.AttackPoint, rayDir, out hit)) {
+				if (Physics.Raycast(targetUnit.AttackPoint, rayDir, out hit, unit.attackRadius)) {
 					tracePoint.point = hit.point - rayDir.normalized;
 				}
 			}
@@ -130,10 +130,14 @@ public class AdvancedPirateAI : MonoBehaviour {
 			minDistance = Mathf.Min(minDistance, dist);
 		}
 
+		Debug.Log("Calc weights");
 		foreach (var tracePoint in tracePoints) {
-			float dist = (tracePoint.point - thisPos).magnitude;
-			tracePoint.weight = Mathf.Lerp(tracePointsWeightRange.x, tracePointsWeightRange.y, 
-				                           (maxDistance - minDistance)/(dist - minDistance));
+			float dist = (tracePoint.point - thisPos).magnitude + UnityEngine.Random.Range(-10f, 10f);
+			float cf = 1f - (dist - minDistance)/(maxDistance - minDistance);
+
+			Debug.Log("DST: " + dist + ", cf: " + cf);
+
+			tracePoint.weight = Mathf.Lerp(tracePointsWeightRange.x, tracePointsWeightRange.y, cf);
 		}
 
 		//lower weight on possible attacked traced points
