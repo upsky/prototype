@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using UnityEngine.EventSystems;
 public class PlayerController : MonoBehaviour {
 
 	public Army army;
@@ -8,6 +8,8 @@ public class PlayerController : MonoBehaviour {
 	private Unit currentUnit;
 
 	public GameObject selectedUnit;
+	public GameObject unitPathTarget;
+	public GameObject unitEnemyTarget;
 
 	public void OnPlayerSelected(int selected) {
 		if(army.units[selected] != null) {
@@ -19,17 +21,38 @@ public class PlayerController : MonoBehaviour {
 	RaycastHit hit;
 
 	void RayHandler() {
-		if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit) && currentUnit != null){
-			if(hit.transform.tag == "enemy") {
-				currentUnit.gameObject.GetComponent<PirateAI>().SetTargetOrder(hit.transform.GetComponent<Unit>());
+		if(!EventSystemManager.currentSystem.IsPointerOverEventSystemObject()) {
+			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit) && currentUnit != null){
+				if(hit.transform.tag == "enemy") {
+					unitEnemyTarget.SetActive(true);
+					unitEnemyTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
+					Invoke("HideUnitEnemyTarget",1f);
+					currentUnit.gameObject.GetComponent<PirateAI>().SetTargetOrder(hit.transform.GetComponent<Unit>());
+					HideUnitPathTarget();
+				} else {
+					currentUnit.gameObject.GetComponent<PirateAI>().SetMoveOrder(hit.point);
+					unitPathTarget.SetActive(true);
+					unitPathTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
+				}
 			} else {
-				currentUnit.gameObject.GetComponent<PirateAI>().SetMoveOrder(hit.point);
+				if(hit.transform.tag == "friend") {
+					currentUnit = hit.transform.GetComponent<Unit>();
+					selectedUnit.SetActive(true);
+				} 
 			}
 		}
 	}
 
+	private void HideUnitEnemyTarget() {
+		unitEnemyTarget.SetActive(false);
+	}
+
+	public void HideUnitPathTarget() {
+		unitPathTarget.SetActive(false);
+	}
+
 	void Update() {
-		if(Input.GetMouseButton(0)) {
+		if(Input.GetMouseButtonDown(0)) {
 			RayHandler();
 		}
 		if(currentUnit != null) {
