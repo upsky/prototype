@@ -30,9 +30,14 @@ public class PlayerController : MonoBehaviour {
 					currentUnit.gameObject.GetComponent<PirateAI>().SetTargetOrder(hit.transform.GetComponent<Unit>());
 					HideUnitPathTarget();
 				} else {
-					currentUnit.gameObject.GetComponent<PirateAI>().SetMoveOrder(hit.point);
-					unitPathTarget.SetActive(true);
-					unitPathTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
+					if(hit.transform.tag == "friend") {
+						currentUnit = hit.transform.GetComponent<Unit>();
+						selectedUnit.SetActive(true);
+					} else {
+						currentUnit.gameObject.GetComponent<PirateAI>().SetMoveOrder(hit.point);
+						unitPathTarget.SetActive(true);
+						unitPathTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
+					}
 				}
 			} else {
 				if(hit.transform.tag == "friend") {
