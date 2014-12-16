@@ -60,7 +60,7 @@ public class Unit: MonoBehaviour {
 	}
 
 	public Vector3 AttackPoint {
-		get { return transform.position + Vector3.up; }
+		get { return transform.position + Vector3.up*1.5f; }
 	}
 
 	void Awake() {

@@ -38,4 +38,13 @@ public class UnitManager : MonoBehaviour {
 		}
 		return res;
 	}
+
+	public Unit GetRandomUnitInRadius(Unit.Faction faction, Vector3 point, float radius = float.MaxValue) {
+		List<Unit> factionUnits = units.FindAll(x => x.faction == faction && (x.transform.position - point).magnitude < radius);
+
+		if (factionUnits.Count == 0)
+			return null;
+
+		return factionUnits[UnityEngine.Random.Range(0, factionUnits.Count - 1)];
+	}
 }
