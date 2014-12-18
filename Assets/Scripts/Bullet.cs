@@ -4,18 +4,15 @@ using System.Collections;
 public class Bullet : MonoBehaviour {
 
 	public float damage = 1f;
-
-	public Unit.Faction faction;
+	public bool isEnemy;
 
 	private Unit myOvner;
-
 	private bool areaDamage = false;
-
 	private float area = 2;
 
-	public void Launch(Vector3 target, Unit.Faction faction, float damage, Unit myOvner, bool areaDamage, float bulletLifeTime) {
+	public void Launch(Vector3 target, bool isEnemy, float damage, Unit myOvner, bool areaDamage, float bulletLifeTime) {
 		this.damage = damage;
-		this.faction = faction;
+		this.isEnemy = isEnemy;
 		this.myOvner = myOvner;
 		this.areaDamage = areaDamage;
 		rigidbody.velocity = target;
@@ -34,20 +31,19 @@ public class Bullet : MonoBehaviour {
 		foreach (var key in units) {
 			if(key.GetComponent<Unit>() != null) {
 				Unit target = key.GetComponent<Unit>();
-				if(target.faction != myOvner.faction) {
-					target.GetDamage(damage);
+				if(target.isEnemy != myOvner.isEnemy) {
+					target.ApplyDamage(damage);
 				}
 			}
 		}
 	}
 
 	public void OnTriggerEnter(Collider other) {
-		if(other.transform.GetComponent<Unit>() &&
-		   faction != other.transform.GetComponent<Unit>().faction) {
+		if(other.transform.GetComponent<Unit>() && isEnemy != other.transform.GetComponent<Unit>().isEnemy) {
 			if(areaDamage) {
 				BtoomDamage(area);
 			} else {
-				other.transform.GetComponent<Unit>().GetDamage(damage);
+				other.transform.GetComponent<Unit>().ApplyDamage(damage);
 			}
 			Destroy(gameObject);
 		}

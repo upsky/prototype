@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Army : MonoBehaviour {
 	
-	public Unit.Faction faction;
+	public bool isEnemy;
 	public GameObject[] prefab = new GameObject[5];
 
 	public List<GameObject> units = new List<GameObject>();
@@ -17,7 +17,8 @@ public class Army : MonoBehaviour {
 
 		for(int i = 0; i < prefab.Length; ++i) {
 			units.Add(GameObject.Instantiate(prefab[i], unitPositions[i].transform.position, unitPositions[i].transform.rotation) as GameObject);
-			units[i].GetComponent<Unit>().InitializeFaction(faction);
+			units[i].transform.parent = UnitManager.GetUnitsContainer(isEnemy);
+			units[i].GetComponent<Unit>().InitializeFaction(isEnemy);
 		}
 
 		unitPositions.ForEach(x => Destroy(x.gameObject));

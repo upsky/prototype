@@ -60,7 +60,7 @@ public class PirateAI : MonoBehaviour {
 		
 		Color redf = new Color(1f, 0f, 0f, 0.6f);
 		Color bluef = new Color(0f, 0f, 1f, 0.6f);
-		factionColor = unit.faction == Unit.Faction.blue ? bluef:redf;
+		factionColor = unit.isEnemy ? bluef:redf;
 
 		move.avoidancePriority = Random.Range(30, 70);
 
@@ -149,7 +149,7 @@ public class PirateAI : MonoBehaviour {
 	}
 
 	void FindTraget() {
-		Unit nearestUnit = UnitManager.instance.GetNearestUnit(unit.OppositeFaction, transform.position);
+		Unit nearestUnit = UnitManager.instance.GetNearestUnit(!unit.isEnemy, transform.position);
 
 		if (nearestUnit != null) {
 			if (targetUnit == null) 

@@ -4,13 +4,9 @@ using System.Collections;
 public class Granate : MonoBehaviour {
 
 	public float damage = 1f;
-
 	public ParticleSystem btoom;
-
-	public Unit.Faction faction;
-
+	public bool isEnemy;
 	public AnimationCurve curva;
-
 	public TrailRenderer line;
 
 	Transform myTransform;
@@ -45,8 +41,8 @@ public class Granate : MonoBehaviour {
 		foreach (var key in units) {
 			if(key.GetComponent<Unit>() != null) {
 				Unit target = key.GetComponent<Unit>();
-				if(target.faction != myOvner.faction) {
-					target.GetDamage(damage);
+				if(target.isEnemy != myOvner.isEnemy) {
+					target.ApplyDamage(damage);
 				}
 			}
 		}
@@ -58,9 +54,9 @@ public class Granate : MonoBehaviour {
 
 	private Unit myOvner;
 
-	public void Launch(Vector3 target, Unit.Faction faction, float damage, Unit myOvner) {
+	public void Launch(Vector3 target, bool isEnemy, float damage, Unit myOvner) {
 		this.damage = damage;
-		this.faction = faction;
+		this.isEnemy = isEnemy;
 		this.myOvner = myOvner;
 		AdjustmentMovement(target);
 	}
