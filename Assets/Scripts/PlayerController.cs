@@ -3,67 +3,85 @@ using System.Collections;
 using UnityEngine.EventSystems;
 public class PlayerController : MonoBehaviour {
 
-	public Army army;
-
-	private Unit currentUnit;
-
-	public GameObject selectedUnit;
 	public GameObject unitPathTarget;
 	public GameObject unitEnemyTarget;
-
-	public void OnPlayerSelected(int selected) {
-		if(army.units[selected] != null) {
-			currentUnit = army.units[selected].GetComponent<Unit>();
-			selectedUnit.SetActive(true);
-		}
-	}
 	
-	RaycastHit hit;
+	private Unit targetOrderUnit;
+	private int targetUnitOrders;
+	private int moveUnitOrders;
 
 	void RayHandler() {
-		if(!EventSystemManager.currentSystem.IsPointerOverEventSystemObject()) {
-			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit) && currentUnit != null){
-				if(hit.transform.tag == "isEnemy") {
-					unitEnemyTarget.SetActive(true);
-					unitEnemyTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
-					Invoke("HideUnitEnemyTarget",1f);
-					currentUnit.gameObject.GetComponent<PirateAI>().SetTargetOrder(hit.transform.GetComponent<Unit>());
-					HideUnitPathTarget();
-				} else {
-					if(hit.transform.tag == "friend") {
-						currentUnit = hit.transform.GetComponent<Unit>();
-						selectedUnit.SetActive(true);
-					} else {
-						currentUnit.gameObject.GetComponent<PirateAI>().SetMoveOrder(hit.point);
-						unitPathTarget.SetActive(true);
-						unitPathTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
-					}
-				}
-			} else {
-				if(hit.transform.tag == "friend") {
-					currentUnit = hit.transform.GetComponent<Unit>();
-					selectedUnit.SetActive(true);
-				} 
+		if(EventSystemManager.currentSystem.IsPointerOverEventSystemObject()) 
+			return;
+
+		RaycastHit hit;
+		if (!Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
+			return;
+
+		Unit hitUnit = hit.collider.GetComponent<Unit>();
+		if (hitUnit != null && hitUnit.isEnemy) {			
+
+			targetOrderUnit = hitUnit;
+			targetUnitOrders = 0;
+			unitEnemyTarget.SetActive(true);
+			unitPathTarget.SetActive(false);
+
+			foreach (var unit in UnitManager.instance.units) {
+				if (unit.isEnemy)
+					continue;
+
+				unit.GetComponent<AdvancedPirateAI>().SetTargetOrder(hitUnit, UnitTargetOrderComplete);
+				targetUnitOrders++;
 			}
+
+			Debug.Log("Target order: " + targetOrderUnit, targetOrderUnit.gameObject);
 		}
-	}
+		else {
+			moveUnitOrders = 0;
+			unitPathTarget.SetActive(true);
+			unitEnemyTarget.SetActive(false);
+			unitPathTarget.transform.position = hit.point;
 
-	private void HideUnitEnemyTarget() {
-		unitEnemyTarget.SetActive(false);
-	}
+			foreach (var unit in UnitManager.instance.units) {
+				if (unit.isEnemy)
+					continue;
 
-	public void HideUnitPathTarget() {
-		unitPathTarget.SetActive(false);
+				unit.GetComponent<AdvancedPirateAI>().SetMovingOrder(hit.point, UnitMovementOrderComplete);
+				moveUnitOrders++;
+			}
+
+			//Debug.Log("Moving order: " + hit.point);
+		}
 	}
 
 	void Update() {
 		if(Input.GetMouseButtonDown(0)) {
 			RayHandler();
 		}
-		if(currentUnit != null) {
-			selectedUnit.transform.position = currentUnit.transform.position;
-		} else {
-			selectedUnit.SetActive(false);
+
+		if (targetOrderUnit != null) {
+			unitEnemyTarget.transform.position = targetOrderUnit.transform.position;
+		}
+	}
+
+	void UnitTargetOrderComplete() {
+		if (unitEnemyTarget == null)
+			return;
+
+		targetUnitOrders--;
+		if (targetUnitOrders == 0) {
+			targetOrderUnit = null;
+			unitEnemyTarget.SetActive(false);
+		}
+	}
+
+	void UnitMovementOrderComplete() {
+		if (unitPathTarget == null)
+			return;
+
+		moveUnitOrders--;
+		if (moveUnitOrders == 0) {
+			unitPathTarget.SetActive(false);
 		}
 	}
 }

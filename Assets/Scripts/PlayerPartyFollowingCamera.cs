@@ -18,7 +18,7 @@ public class PlayerPartyFollowingCamera : MonoBehaviour {
 			playerUnitsCount += 1f;
 		}
 
-		if (playerUnitsCount < 1.5f)
+		if (playerUnitsCount < 0.5f)
 			return;
 
 		posSumm /= playerUnitsCount;

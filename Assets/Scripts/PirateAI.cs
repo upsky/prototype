@@ -177,7 +177,6 @@ public class PirateAI : MonoBehaviour {
 	void Update() {
 		if(move.remainingDistance < 0.1f && playerOrder) {
 			StartInvoks();
-			playerController.HideUnitPathTarget();
 			playerOrder = false;
 		}
 		

@@ -29,6 +29,7 @@ public class AdvancedPirateAI : MonoBehaviour {
 	private NavMeshAgent navMeshAgent;
 	private Unit unit;
 	private Unit targetUnit;
+	private float stoppingDistance;
 	
 	private float attackPointRefindRate;
 	private float targetRefindRate;
@@ -43,17 +44,39 @@ public class AdvancedPirateAI : MonoBehaviour {
 	private float centerWeight;
 	private float currCenterWeight;
 
+	private bool playerOrderMovement;
+	private bool playerOrderTarget;
+	private Action onPlayerOrderComplete;
+
 	private MeshRenderer dbgMeshRenderer;
 	private MeshFilter dbgMeshFilter;
 	private GameObject dbgMeshObject;
 
 	private bool selected;
 
+	public void SetMovingOrder(Vector3 point, Action onComplete) {
+		playerOrderTarget = false;
+		playerOrderMovement = true;
+		targetUnit = null;
+		attackingPoint = point;
+		navMeshAgent.destination = point;
+		navMeshAgent.stoppingDistance = 1f;
+		onPlayerOrderComplete = onComplete;
+	}
+
+	public void SetTargetOrder(Unit target, Action onComplete) {
+		playerOrderMovement = false;
+		playerOrderTarget = true;
+		targetUnit = target;
+		onPlayerOrderComplete = onComplete;
+	}
+
 	void Start () {
 		unit = GetComponent<Unit>();
 		navMeshAgent = GetComponent<NavMeshAgent>();
 
 		navMeshAgent.avoidancePriority = UnityEngine.Random.Range(10, 100);
+		stoppingDistance = navMeshAgent.stoppingDistance;
 
 		dbgMeshObject = new GameObject("dbgMesh");
 		dbgMeshObject.transform.parent = GameObject.FindWithTag("AIDebug").transform;
@@ -65,6 +88,9 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void OnDestroy() {
+		if (playerOrderMovement || playerOrderTarget)
+			onPlayerOrderComplete();
+
 		Destroy(dbgMeshObject);
 	}
 	
@@ -89,10 +115,23 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void UpdateMovement() {
-		if (targetUnit != null)
-			navMeshAgent.SetDestination( navMeshAgent.destination.SmartLerp(attackingPoint, Time.deltaTime*3f, 0.1f) );
-		else
-			navMeshAgent.Stop();
+
+		if (!playerOrderMovement) {
+			if (targetUnit != null)
+				navMeshAgent.SetDestination( navMeshAgent.destination.SmartLerp(attackingPoint, Time.deltaTime*3f, 0.1f) );
+			else
+				navMeshAgent.Stop();
+		}
+		else {
+			if ((navMeshAgent.destination - transform.position).magnitude - navMeshAgent.stoppingDistance < 0.2f) {
+				navMeshAgent.stoppingDistance = stoppingDistance;
+				playerOrderMovement = false;
+				onPlayerOrderComplete();
+
+				//Debug.Log("Moving order complete!", gameObject);
+			}
+		}
+
 
 		if (navMeshAgent.velocity.magnitude < 0.1f && targetUnit != null) {
 			Vector3 lookPoint = targetUnit.AttackPoint;
@@ -104,6 +143,9 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void CheckTargetRefind(bool forcible = false) {
+		if (playerOrderTarget || playerOrderMovement)
+			return;
+
 		if (Time.time < lastTargetRefindTime + targetRefindRate && !forcible)
 			return;
 
@@ -130,6 +172,9 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void CheckAttackPointRefind(bool forcible = false, bool updateRandomWeights = false) {
+		if (playerOrderMovement)
+			return;
+
 		if (Time.time < lastAttackPointRefindTime + attackPointRefindRate && !forcible || targetUnit == null)
 			return;		
 
@@ -258,11 +303,14 @@ public class AdvancedPirateAI : MonoBehaviour {
 
 	void OnDrawGizmosSelected() {
 		
+		if (!playerOrderMovement) {
+			Gizmos.DrawLine(attackingPoint, navMeshAgent.destination);
+		}
+
 		Gizmos.DrawLine(unit.AttackPoint, navMeshAgent.destination);
-		Gizmos.DrawLine(attackingPoint, navMeshAgent.destination);
 		Gizmos.DrawCube(navMeshAgent.destination, new Vector3(1, 1, 1)*0.2f);
 
-		if (targetUnit != null) {
+		if (targetUnit != null && !playerOrderMovement) {
 // 			foreach (var pt in tracePoints) {
 // 				//Gizmos.DrawLine(pt.point, targetUnit.AttackPoint);
 // 				Gizmos.DrawSphere(pt.point, pt.weight*0.01f);
@@ -319,6 +367,11 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void CheckAttacking() {
+		if (playerOrderTarget && targetUnit == null) {
+			playerOrderTarget = false;
+			onPlayerOrderComplete();
+		}
+
 		if (Time.time < lastAttackTime + unit.cd)
 			return;
 

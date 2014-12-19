@@ -52,13 +52,15 @@ public class PivotsPath : MonoBehaviour {
 			Vector3 dir1 = dir/segLen;
 
 			float lProj = Vector3.Dot(dir1, point - ta);
-			if (lProj < 0 || lProj > segLen)
+			if (lProj < 0 || lProj > segLen) {
+				lenSumm += segLen;
 				continue;
+			}
 			
 			Vector3 n = Vector3.Cross(dir1, Vector3.up);
 			float proj = Vector3.Dot(point - ta, n);
 
-			Debug.DrawRay(ta, n, new Color(1f, 0f, 0f, 0.5f), 5f);
+			Debug.DrawRay(ta, n, Color.red, 5f);
 
 			if (Mathf.Abs(proj) < resMinDist) {
 				resMinDist = Mathf.Abs(proj);
