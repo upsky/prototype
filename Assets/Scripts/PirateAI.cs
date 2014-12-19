@@ -113,8 +113,6 @@ public class PirateAI : MonoBehaviour {
 		float dist = targetDir.magnitude;
 		Vector3 initialDir = targetDir/dist*Mathf.Min(unit.attackRadius*-0.7f, dist);
 
-		Color dirColor = new Color(1f, 1f, 1f, 0.2f);
-
 		float accumulateAngle = 0;
 		while (accumulateAngle < 180f) {
 			Vector3 leftWorld = initialDir; leftWorld = leftWorld.RotateY(accumulateAngle*Mathf.Deg2Rad);

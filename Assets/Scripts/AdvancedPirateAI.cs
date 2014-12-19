@@ -89,7 +89,11 @@ public class AdvancedPirateAI : MonoBehaviour {
 	}
 
 	void UpdateMovement() {
-		navMeshAgent.SetDestination( navMeshAgent.destination.SmartLerp(attackingPoint, Time.deltaTime*3f, 0.1f) );
+		if (targetUnit != null)
+			navMeshAgent.SetDestination( navMeshAgent.destination.SmartLerp(attackingPoint, Time.deltaTime*3f, 0.1f) );
+		else
+			navMeshAgent.Stop();
+
 		if (navMeshAgent.velocity.magnitude < 0.1f && targetUnit != null) {
 			Vector3 lookPoint = targetUnit.AttackPoint;
 			lookPoint.y = transform.position.y;

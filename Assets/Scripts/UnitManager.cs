@@ -19,6 +19,8 @@ public class UnitManager : MonoBehaviour {
 
 	public void OnUnitCreated(Unit unit) {
 		units.Add(unit);
+		if (unit.isEnemy) unit.transform.Reparent(enemyUnitsContainer);
+		else              unit.transform.Reparent(playerUnitsContainer);
 	}
 
 	public void OnUnitDestroyed(Unit unit) {
