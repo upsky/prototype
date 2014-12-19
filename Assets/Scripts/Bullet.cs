@@ -6,22 +6,23 @@ public class Bullet : MonoBehaviour {
 	public float damage = 1f;
 	public bool isEnemy;
 
-	private Unit myOvner;
-	private bool areaDamage = false;
-	private float area = 2;
+	public GameObject damageRadiusObj;
 
-	public void Launch(Vector3 target, bool isEnemy, float damage, Unit myOvner, bool areaDamage, float bulletLifeTime) {
+	private Unit myOvner;
+	private float damageRadius = 0;
+
+	public void Launch(Vector3 target, bool isEnemy, float damage, Unit myOvner, float damageRadius, float bulletLifeTime) {
 		this.damage = damage;
 		this.isEnemy = isEnemy;
 		this.myOvner = myOvner;
-		this.areaDamage = areaDamage;
+		this.damageRadius = damageRadius;
 		rigidbody.velocity = target;
 		Invoke("KillHimself", bulletLifeTime);
 	}
 
 	private void KillHimself() {
-		if(areaDamage){ 
-			BtoomDamage(area);
+		if(damageRadius != 0){ 
+			BtoomDamage(damageRadius);
 		}
 		Destroy(gameObject);
 	}
@@ -32,6 +33,9 @@ public class Bullet : MonoBehaviour {
 			if(key.GetComponent<Unit>() != null) {
 				Unit target = key.GetComponent<Unit>();
 				if(target.isEnemy != myOvner.isEnemy) {
+					GameObject damageRad = (GameObject)Instantiate(damageRadiusObj,transform.position,transform.rotation);
+					damageRad.transform.localScale = new Vector3(area,area,area);
+					damageRad.transform.parent = MapUtilities.ProjectilesContainer;
 					target.ApplyDamage(damage);
 				}
 			}
@@ -40,8 +44,8 @@ public class Bullet : MonoBehaviour {
 
 	public void OnTriggerEnter(Collider other) {
 		if(other.transform.GetComponent<Unit>() && isEnemy != other.transform.GetComponent<Unit>().isEnemy) {
-			if(areaDamage) {
-				BtoomDamage(area);
+			if(damageRadius != 0) {
+				BtoomDamage(damageRadius);
 			} else {
 				other.transform.GetComponent<Unit>().ApplyDamage(damage);
 			}

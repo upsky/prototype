@@ -64,7 +64,7 @@ public class Unit: MonoBehaviour {
 	public void ApplyDamage(float damage) {
 		hp -= damage;
 
-		BroadcastMessage("HpHandler", hp/baseHp);
+		BroadcastMessage("HpHandler",hp/baseHp);
 
 		if (hp < 0) {
 			Destroy(gameObject);

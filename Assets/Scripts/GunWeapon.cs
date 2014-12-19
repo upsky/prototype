@@ -13,14 +13,8 @@ public class GunWeapon : Weapon {
 		coreBazuka
 	};
 	public WeaopnType weaopnType;
-	private bool first = false;
 
 	public override void Attack(Unit target) {
-		if(!first) {
-			//weaopnType = (WeaopnType)Random.Range(0,4);
-			first = true;
-		}
-
 		switch(weaopnType) {
 			case WeaopnType.granate:
 				Granate(target);
@@ -36,31 +30,44 @@ public class GunWeapon : Weapon {
 				break;
 		}
 	}
+	Vector3 selfPos = Vector3.zero;
+
+	void UpdateSelfPos() {
+		selfPos = transform.position + new Vector3(0,2,0);
+		if(GetComponent<TowerAI>() == null) {
+			selfPos = unit.Skin.ShootPoint.position;
+		}
+	}
 
 	private void Granate(Unit target) {
-		Granate granate = (Instantiate(granatePrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.identity) as GameObject).GetComponent<Granate>();
+		UpdateSelfPos();
+		Granate granate = (Instantiate(granatePrefab.gameObject, selfPos, Quaternion.identity) as GameObject).GetComponent<Granate>();
+			
 		granate.transform.parent = MapUtilities.ProjectilesContainer;
-		granate.Launch(target.transform.position, unit.isEnemy, unit.damage, unit);
+		granate.Launch(target.transform.position, unit.isEnemy, unit.damage, unit, unit.damageRadius);
 	}
 
 	private void Pistol(Unit target) {
-		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		UpdateSelfPos();
+		Vector3 dir = target.transform.position -  selfPos ;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, selfPos, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
 		bullet.transform.parent = MapUtilities.ProjectilesContainer;
-		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.isEnemy, unit.damage, unit,false,2.5f);
+		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.isEnemy, unit.damage, unit,0,3f);
 	}
 
 	private void CoreBazuka(Unit target) {
-		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		UpdateSelfPos();
+		Vector3 dir = target.transform.position - selfPos;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, selfPos, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
 		bullet.transform.parent = MapUtilities.ProjectilesContainer;
-		bullet.Launch((target.transform.position - transform.position).normalized*10f, unit.isEnemy, unit.damage, unit,true,2.5f);
+		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.isEnemy, unit.damage, unit,unit.damageRadius,1f);
 	}
 
 	private void Bazuka(Unit target) {
-		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
-		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
+		UpdateSelfPos();
+		Vector3 dir = target.transform.position - selfPos;
+		Bullet bullet = (Instantiate(bulletPrefab.gameObject, selfPos, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
 		bullet.transform.parent = MapUtilities.ProjectilesContainer;
-		bullet.Launch((target.transform.position - transform.position).normalized*30f, unit.isEnemy, unit.damage, unit,true,2.5f);
+		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.isEnemy, unit.damage, unit,unit.damageRadius,6f);
 	}
 }
