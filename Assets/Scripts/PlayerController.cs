@@ -63,6 +63,8 @@ public class PlayerController : MonoBehaviour {
 		if(currentUnit != null) {
 			selectedUnit.transform.position = currentUnit.transform.position;
 		} else {
+			unitPathTarget.SetActive(false);
+			unitEnemyTarget.SetActive(false);
 			selectedUnit.SetActive(false);
 		}
 	}
