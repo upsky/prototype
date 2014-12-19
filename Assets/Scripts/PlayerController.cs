@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour {
 	void RayHandler() {
 		if(!EventSystemManager.currentSystem.IsPointerOverEventSystemObject()) {
 			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit) && currentUnit != null){
-				if(hit.transform.tag == "enemy") {
+				if(hit.transform.tag == "isEnemy") {
 					unitEnemyTarget.SetActive(true);
 					unitEnemyTarget.transform.position = hit.point + new Vector3(0,0.5f,0);
 					Invoke("HideUnitEnemyTarget",1f);

@@ -39,24 +39,28 @@ public class GunWeapon : Weapon {
 
 	private void Granate(Unit target) {
 		Granate granate = (Instantiate(granatePrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.identity) as GameObject).GetComponent<Granate>();
-		granate.Launch(target.transform.position, unit.faction, unit.damage, unit);
+		granate.transform.parent = MapUtilities.ProjectilesContainer;
+		granate.Launch(target.transform.position, unit.isEnemy, unit.damage, unit);
 	}
 
 	private void Pistol(Unit target) {
 		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
 		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.faction, unit.damage, unit,false,2.5f);
+		bullet.transform.parent = MapUtilities.ProjectilesContainer;
+		bullet.Launch((target.transform.position - transform.position).normalized*20f, unit.isEnemy, unit.damage, unit,false,2.5f);
 	}
 
 	private void CoreBazuka(Unit target) {
 		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
 		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position).normalized*10f, unit.faction, unit.damage, unit,true,2.5f);
+		bullet.transform.parent = MapUtilities.ProjectilesContainer;
+		bullet.Launch((target.transform.position - transform.position).normalized*10f, unit.isEnemy, unit.damage, unit,true,2.5f);
 	}
 
 	private void Bazuka(Unit target) {
 		Vector3 dir = target.transform.position - unit.Skin.ShootPoint.position;
 		Bullet bullet = (Instantiate(bulletPrefab.gameObject, unit.Skin.ShootPoint.position, Quaternion.LookRotation(dir)) as GameObject).GetComponent<Bullet>();
-		bullet.Launch((target.transform.position - transform.position).normalized*30f, unit.faction, unit.damage, unit,true,2.5f);
+		bullet.transform.parent = MapUtilities.ProjectilesContainer;
+		bullet.Launch((target.transform.position - transform.position).normalized*30f, unit.isEnemy, unit.damage, unit,true,2.5f);
 	}
 }

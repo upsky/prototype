@@ -15,20 +15,10 @@ public abstract class Weapon : MonoBehaviour {
 }
 
 public class Unit: MonoBehaviour {
-
-	public enum Faction {
-		red,
-		blue
-	}
-
-	[Serializable]
-	public struct SkinDef {
-		public PirateSkin skinPrefab;
-		public Faction faction;
-	}
-
-	public SkinDef[] skins;
-	public Faction faction;
+		
+	public PirateSkin playersSkin;
+	public PirateSkin enemySkin;
+	public bool isEnemy;
 	
 	public float hp = 10;
 	public float cd = 0;
@@ -40,16 +30,8 @@ public class Unit: MonoBehaviour {
 	public Action onUnitDestroyed;
 	private Weapon weapon;
 	private PirateSkin skin;
+	private float baseHp;
 
-	
-	public Faction OppositeFaction {
-		get {
-			if (faction == Faction.red)
-				return Faction.blue;
-
-			return Faction.red;
-		}
-	}
 
 	public Weapon Weapon {
 		get { return weapon; }
@@ -60,8 +42,9 @@ public class Unit: MonoBehaviour {
 	}
 
 	public Vector3 AttackPoint {
-		get { return transform.position + Vector3.up; }
+		get { return transform.position + Vector3.up*1.5f; }
 	}
+
 
 	void Awake() {
 		UnitManager.instance.OnUnitCreated(this);
@@ -77,31 +60,26 @@ public class Unit: MonoBehaviour {
 			onUnitDestroyed();
 	}
 
-	float baseHp = 0;
 
-	public void ResurrectionUnit() {
-		hp = 10;
-	}
-
-	public void GetDamage(float damage) {
+	public void ApplyDamage(float damage) {
 		hp -= damage;
-		BroadcastMessage("HpHandler",hp/baseHp);
+
+		BroadcastMessage("HpHandler", hp/baseHp);
+
 		if (hp < 0) {
 			Destroy(gameObject);
 		}
 	}
 
-	public void InitializeFaction(Faction faction) {
-		this.faction = faction;
-		GameObject skinPrefab = skins.First(x => x.faction == faction).skinPrefab.gameObject;
+	public void InitializeFaction(bool isEnemy) {
+		this.isEnemy = isEnemy;
+
+		GameObject skinPrefab = isEnemy ? enemySkin.gameObject:playersSkin.gameObject;
 		GameObject skinObject = Instantiate(skinPrefab) as GameObject;
 		skin = skinObject.GetComponent<PirateSkin>();
-		skin.transform.parent = transform;
-		skin.transform.localPosition = Vector3.zero;
-		skin.transform.localRotation = Quaternion.identity;
-		skin.transform.localScale = new Vector3(1,1,1);
+		skin.transform.Reparent(transform);
 
-		if (faction == Faction.blue) tag = "enemy";
-		else tag = "friend";
+		if (isEnemy) tag = "enemy";
+		else         tag = "friend";
 	}
 }

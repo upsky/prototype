@@ -60,7 +60,7 @@ public class PirateAI : MonoBehaviour {
 		
 		Color redf = new Color(1f, 0f, 0f, 0.6f);
 		Color bluef = new Color(0f, 0f, 1f, 0.6f);
-		factionColor = unit.faction == Unit.Faction.blue ? bluef:redf;
+		factionColor = unit.isEnemy ? bluef:redf;
 
 		move.avoidancePriority = Random.Range(30, 70);
 
@@ -113,8 +113,6 @@ public class PirateAI : MonoBehaviour {
 		float dist = targetDir.magnitude;
 		Vector3 initialDir = targetDir/dist*Mathf.Min(unit.attackRadius*-0.7f, dist);
 
-		Color dirColor = new Color(1f, 1f, 1f, 0.2f);
-
 		float accumulateAngle = 0;
 		while (accumulateAngle < 180f) {
 			Vector3 leftWorld = initialDir; leftWorld = leftWorld.RotateY(accumulateAngle*Mathf.Deg2Rad);
@@ -149,7 +147,7 @@ public class PirateAI : MonoBehaviour {
 	}
 
 	void FindTraget() {
-		Unit nearestUnit = UnitManager.instance.GetNearestUnit(unit.OppositeFaction, transform.position);
+		Unit nearestUnit = UnitManager.instance.GetNearestUnit(!unit.isEnemy, transform.position);
 
 		if (nearestUnit != null) {
 			if (targetUnit == null) 
