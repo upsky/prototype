@@ -44,8 +44,7 @@ public class Unit: MonoBehaviour {
 	public Vector3 AttackPoint {
 		get { return transform.position + Vector3.up*1.5f; }
 	}
-
-
+	
 	void Awake() {
 		UnitManager.instance.OnUnitCreated(this);
 		weapon = GetComponent<Weapon>();
@@ -56,6 +55,9 @@ public class Unit: MonoBehaviour {
 
 	void OnDestroy() {
 		UnitManager.instance.OnUnitDestroyed(this);
+		if(isEnemy) {
+			ScoreCounter.UpdateScore(10);
+		}
 		if (onUnitDestroyed != null)
 			onUnitDestroyed();
 	}
